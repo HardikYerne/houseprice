@@ -1,9 +1,7 @@
 flask
-scikit-learn
-xgboost
+flask-cors
 numpy
 pandas
-matplotlib
-tensorflow
-seaborn
-gunicon
+scikit-learn
+xgboost
+gunicorn
