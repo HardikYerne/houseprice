@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 HomeValue AI - Smart Housing Price Predictor</title>
+    
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gradient-1: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --gradient-2: linear-gradient(135deg, #22c55e, #10b981, #14b8a6);
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation span {
+            position: absolute;
+            display: block;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: float 25s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+        }
+
+        /* Generate random positions for floating elements */
+        .bg-animation span:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 30s; }
+        .bg-animation span:nth-child(2) { left: 20%; width: 80px; height: 80px; animation-duration: 35s; animation-delay: -5s; }
+        .bg-animation span:nth-child(3) { left: 30%; width: 40px; height: 40px; animation-duration: 25s; animation-delay: -10s; }
+        .bg-animation span:nth-child(4) { left: 50%; width: 100px; height: 100px; animation-duration: 40s; animation-delay: -15s; }
+        .bg-animation span:nth-child(5) { left: 70%; width: 50px; height: 50px; animation-duration: 28s; animation-delay: -8s; }
+        .bg-animation span:nth-child(6) { left: 85%; width: 70px; height: 70px; animation-duration: 32s; animation-delay: -12s; }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Connection Status */
+        .status-card {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 100px;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.5s ease;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+            box-shadow: 0 0 20px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger);
+            box-shadow: 0 0 20px var(--danger);
+        }
+
+        .status-text {
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Main Card */
+        .predictor-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-xl);
+            animation: fadeInUp 0.8s ease;
+            transition: transform 0.3s ease;
+        }
+
+        .predictor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tab i {
+            font-size: 1.1rem;
+        }
+
+        .tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            animation: fadeIn 0.5s ease;
+            animation-fill-mode: both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+        .form-group:nth-child(6) { animation-delay: 0.35s; }
+        .form-group:nth-child(7) { animation-delay: 0.4s; }
+        .form-group:nth-child(8) { animation-delay: 0.45s; }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            font-size: 1rem;
+            width: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-wrapper input:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-wrapper input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 1rem;
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .feature-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .importance-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        /* Predict Button */
+        .predict-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .predict-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .predict-btn:hover::before {
+            left: 100%;
+        }
+
+        .predict-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.5);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .predict-btn i {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .predict-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        /* Result Card */
+        .result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-2);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+        }
+
+        .detail-label {
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 100px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--gradient-2);
+            border-radius: 100px;
+            transition: width 1s ease;
+            width: 0%;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner i {
+            font-size: 2rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 1rem;
+            padding: 1rem;
+            color: #fecaca;
+            margin-top: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-message i {
+            color: var(--danger);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+            color: var(--gray);
+            cursor: help;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-weight: normal;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .header h1 { font-size: 2.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .result-details { grid-template-columns: 1fr; }
+            .predictor-card { padding: 1.5rem; }
+            .status-card { top: 1rem; right: 1rem; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Feature Tags */
+        .feature-tag {
+            position: absolute;
+            top: -0.5rem;
+            right: 1rem;
+            background: var(--gradient-1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Glowing effect */
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px -10px var(--primary);
+            }
+            to {
+                box-shadow: 0 0 20px 5px var(--primary);
+            }
+        }
+
+        /* Floating action button for new prediction */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 20px 30px -10px var(--primary);
+        }
+
+        .fab.show {
+            display: flex;
+            animation: slideInUp 0.5s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="status-card animate__animated animate__slideInRight">
+        <div class="status-dot disconnected" id="statusDot"></div>
+        <span class="status-text" id="statusText">Connecting to server...</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="animate__animated animate__fadeInDown">
+                <i class="fas fa-robot"></i> HomeValue AI
+            </h1>
+            <p class="animate__animated animate__fadeInUp animate__delay-1s">
+                Advanced machine learning powered by XGBoost for accurate California housing price predictions
+            </p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="predictor-card">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('single')">
+                    <i class="fas fa-home"></i>
+                    Single Property
+                </div>
+                <div class="tab" onclick="switchTab('batch')">
+                    <i class="fas fa-layer-group"></i>
+                    Batch Prediction
+                </div>
+            </div>
+
+            <!-- Single Prediction Form -->
+            <div id="singleTab">
+                <form id="predictionForm">
+                    <div class="form-grid">
+                        {% for name, info in feature_info.items() %}
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-home"></i>
+                                {{ name }}
+                                <span class="importance-badge">{{ info.importance }}</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" 
+                                       step="0.001" 
+                                       name="{{ name }}" 
+                                       value="{{ info.default }}"
+                                       min="{{ info.min }}" 
+                                       max="{{ info.max }}" 
+                                       required
+                                       placeholder="Enter value">
+                                <span class="input-suffix">{{ info.unit }}</span>
+                            </div>
+                            <div class="feature-hint">
+                                <i class="fas fa-info-circle"></i>
+                                <span>{{ info.description }}</span>
+                                <div class="tooltip">
+                                    <i class="fas fa-question-circle"></i>
+                                    <div class="tooltip-text">
+                                        Range: {{ info.min }} - {{ info.max }} {{ info.unit }}<br>
+                                        Importance: {{ info.importance }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="predict-btn" id="predictBtn">
+                        <span>Predict House Value</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div class="spinner" id="spinner">
+                    <i class="fas fa-circle-notch"></i>
+                    <p style="color: var(--gray); margin-top: 1rem;">Analyzing property data...</p>
+                </div>
+
+                <!-- Result Card -->
+                <div class="result-card" id="resultCard" style="display: none;">
+                    <div class="result-header">
+                        <div class="result-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <div class="result-title">Predicted Market Value</div>
+                            <div class="result-value" id="predictionValue">$0</div>
+                        </div>
+                    </div>
+
+                    <div class="result-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Low Estimate</div>
+                            <div class="detail-value" id="lowEstimate">$0</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">High Estimate</div>
+                            <div class="detail-value" id="highEstimate">$0</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Confidence</div>
+                            <div class="detail-value" id="confidenceValue">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceBar" style="width: 0%"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="predict-btn" onclick="resetForm()" style="background: linear-gradient(135deg, #64748b, #475569);">
+                            <i class="fas fa-redo"></i>
+                            New Prediction
+                        </button>
+                        <button class="predict-btn" onclick="shareResult()" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                            <i class="fas fa-share-alt"></i>
+                            Share
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
+            <!-- Batch Prediction Tab -->
+            <div id="batchTab" style="display: none;">
+                <div class="upload-area" onclick="document.getElementById('csvFile').click()" 
+                     style="border: 3px dashed rgba(99, 102, 241, 0.3); border-radius: 2rem; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(0,0,0,0.2);">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Upload CSV File</h3>
+                    <p style="color: var(--gray); margin-bottom: 1rem;">Drag and drop or click to browse</p>
+                    <p style="color: var(--gray); font-size: 0.875rem;">
+                        Required columns: MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude
+                    </p>
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                </div>
+
+                <div id="fileInfo" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 1rem; border: 1px solid rgba(34, 197, 94, 0.2);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success); font-size: 2rem;"></i>
+                        <div>
+                            <div style="color: white; font-weight: 600;">File Selected</div>
+                            <div style="color: var(--gray);" id="fileName"></div>
+                        </div>
+                    </div>
+                    <button class="predict-btn" onclick="processBatch()" style="margin-top: 1rem;">
+                        <i class="fas fa-play"></i>
+                        Process Batch
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="fab" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // ==================== Connection Status ====================
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                
+                const dot = document.getElementById('statusDot');
+                const text = document.getElementById('statusText');
+                
+                if (response.ok && data.model_loaded) {
+                    dot.className = 'status-dot connected';
+                    text.textContent = 'Connected to AI Model';
+                    
+                    // Show success toast
+                    showNotification('Connected to prediction server', 'success');
+                } else {
+                    throw new Error('Model not loaded');
+                }
+            } catch (error) {
+                const dot = document.getElementById('statusDot');
+                const text = document.getElementById('statusText');
+                
+                dot.className = 'status-dot disconnected';
+                text.textContent = 'Disconnected';
+                
+                showNotification('Cannot connect to server', 'error');
+            }
+        }
+
+        // ==================== Tab Switching ====================
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'single') {
+                tabs[0].classList.add('active');
+                document.getElementById('singleTab').style.display = 'block';
+                document.getElementById('batchTab').style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('singleTab').style.display = 'none';
+                document.getElementById('batchTab').style.display = 'block';
+            }
+        }
+
+        // ==================== Single Prediction ====================
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = parseFloat(value);
+            });
+            
+            // Show loading
+            document.getElementById('spinner').style.display = 'block';
+            document.getElementById('predictBtn').disabled = true;
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(`${API_BASE}/api/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const responseTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (result.success) {
+                    // Update result card
+                    document.getElementById('predictionValue').textContent = result.price_usd;
+                    
+                    // Calculate price range (±5%)
+                    const price = parseFloat(result.price_usd.replace(/[$,]/g, ''));
+                    const low = price * 0.95;
+                    const high = price * 1.05;
+                    
+                    document.getElementById('lowEstimate').textContent = 
+                        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(low);
+                    document.getElementById('highEstimate').textContent = 
+                        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(high);
+                    
+                    document.getElementById('confidenceValue').textContent = result.confidence + '%';
+                    document.getElementById('confidenceBar').style.width = result.confidence + '%';
+                    
+                    // Show result card with animation
+                    document.getElementById('resultCard').style.display = 'block';
+                    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Show FAB
+                    document.getElementById('fab').classList.add('show');
+                    
+                    showNotification(`Prediction completed in ${responseTime}s`, 'success');
+                } else {
+                    showError(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection.');
+            } finally {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('predictBtn').disabled = false;
+            }
+        });
+
+        // ==================== Reset Form ====================
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('fab').classList.remove('show');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==================== Show Error ====================
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            errorText.textContent = message;
+            errorDiv.style.display = 'flex';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // ==================== Show Notification ====================
+        function showNotification(message, type) {
+            // You can implement a toast notification system here
+            console.log(`[${type}] ${message}`);
+        }
+
+        // ==================== Batch Processing ====================
+        document.getElementById('csvFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileInfo').style.display = 'block';
+            }
+        });
+
+        async function processBatch() {
+            const file = document.getElementById('csvFile').files[0];
+            if (!file) {
+                showNotification('Please select a CSV file', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            document.getElementById('batchSpinner').style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/batch-predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `predictions_${new Date().getTime()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Reset
+                    document.getElementById('csvFile').value = '';
+                    document.getElementById('fileInfo').style.display = 'none';
+                    
+                    showNotification('Batch processing complete!', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Batch processing failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error', 'error');
+            } finally {
+                document.getElementById('batchSpinner').style.display = 'none';
+            }
+        }
+
+        // ==================== Share Result ====================
+        function shareResult() {
+            const value = document.getElementById('predictionValue').textContent;
+            const text = `My property is estimated to be worth ${value} according to HomeValue AI! 🏠`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Home Value Prediction',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(text);
+                showNotification('Result copied to clipboard!', 'success');
+            }
+        }
+
+        // ==================== Scroll to Top ====================
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==================== Show/Hide FAB on Scroll ====================
+        window.addEventListener('scroll', () => {
+            const fab = document.getElementById('fab');
+            if (window.scrollY > 500) {
+                fab.classList.add('show');
+            } else {
+                fab.classList.remove('show');
+            }
+        });
+
+        // ==================== Initialize ====================
+        window.onload = function() {
+            checkConnection();
+            setInterval(checkConnection, 30000);
+            
+            // Add input validation
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', function() {
+                    const min = parseFloat(this.min);
+                    const max = parseFloat(this.max);
+                    const value = parseFloat(this.value);
+                    
+                    if (value < min || value > max || isNaN(value)) {
+                        this.style.borderColor = '#ef4444';
+                    } else {
+                        this.style.borderColor = 'rgba(255,255,255,0.05)';
+                    }
+                });
+            });
+        };
+    </script>
+</body>
+</html>

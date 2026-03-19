@@ -1,117 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>California Housing Price Predictor</title>
+    <title>House Price Predictor</title>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
+
         .container {
-            background-color: white;
+            background: #1e293b;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            width: 420px;
         }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
+
         input {
             width: 100%;
+            margin: 8px 0;
             padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 20px;
+            border-radius: 6px;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        }
+
+        button {
             width: 100%;
-            font-size: 16px;
+            padding: 12px;
+            background: #22c55e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 6px;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        .result {
+
+        #result {
             margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f5e8;
-            border-radius: 4px;
             text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #2e7d32;
         }
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e3f2fd;
-            border-radius: 4px;
-            font-size: 14px;
-            color: #1565c0;
-        }
-        .feature-desc {
+
+        #status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px;
-            color: #777;
-            margin-top: 2px;
         }
+
+        .ok { background: green; }
+        .fail { background: red; }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🏠 California Housing Price Predictor</h1>
-        <p>Enter the features below to predict the median house value</p>
-        
-        <form action="/predict" method="post">
-            {% for feature in feature_names %}
-            <div class="form-group">
-                <label for="{{ feature }}">{{ feature }}:</label>
-                <input type="number" step="any" name="{{ feature }}" 
-                       placeholder="Enter {{ feature }}" required>
-                <div class="feature-desc">
-                    {% if feature == 'MedInc' %}Median income in block group
-                    {% elif feature == 'HouseAge' %}Median house age in block group
-                    {% elif feature == 'AveRooms' %}Average number of rooms per household
-                    {% elif feature == 'AveBedrms' %}Average number of bedrooms per household
-                    {% elif feature == 'Population' %}Block group population
-                    {% elif feature == 'AveOccup' %}Average number of household members
-                    {% elif feature == 'Latitude' %}Block group latitude
-                    {% elif feature == 'Longitude' %}Block group longitude
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-            
-            <button type="submit">Predict Price</button>
-        </form>
-        
-        {% if prediction_text %}
-        <div class="result">
-            {{ prediction_text }}
-        </div>
-        {% endif %}
-        
-        <div class="info">
-            <strong>📊 Model Info:</strong> XGBoost Regressor (tuned)<br>
-            <strong>🎯 RMSE:</strong> ~0.4520 on test data
-        </div>
-    </div>
+
+<div id="status" class="fail">Connecting...</div>
+
+<div class="container">
+    <h2>🏠 House Price Predictor</h2>
+
+    <form id="form">
+        {% for name, info in feature_info.items() %}
+            <label>{{ name }}</label>
+            <input type="number" step="any" name="{{ name }}" value="{{ info.default }}" required>
+        {% endfor %}
+
+        <button type="submit">Predict</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+const API = window.location.origin;
+
+// Check backend connection
+async function checkHealth() {
+    try {
+        const res = await fetch(API + "/api/health");
+        if (res.ok) {
+            document.getElementById("status").innerText = "Connected";
+            document.getElementById("status").className = "ok";
+        }
+    } catch {
+        document.getElementById("status").innerText = "Disconnected";
+        document.getElementById("status").className = "fail";
+    }
+}
+
+checkHealth();
+
+// Predict
+document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    let formData = new FormData(e.target);
+    let data = {};
+
+    formData.forEach((value, key) => {
+        data[key] = parseFloat(value);
+    });
+
+    document.getElementById("result").innerText = "Predicting...";
+
+    try {
+        let res = await fetch(API + "/api/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        let result = await res.json();
+
+        if (result.success) {
+            document.getElementById("result").innerText =
+                "💰 " + result.prediction_usd +
+                " | Confidence: " + result.confidence + "%";
+        } else {
+            document.getElementById("result").innerText =
+                "❌ " + result.error;
+        }
+
+    } catch (err) {
+        document.getElementById("result").innerText = "Server Error";
+    }
+});
+</script>
+
 </body>
 </html>
